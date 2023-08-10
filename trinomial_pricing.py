@@ -1,3 +1,6 @@
+import numpy as np
+
+
 class TrinomialModel(object):  # Here we start defining our 'class' --> Trinomial Model!
     # First, a method to initialize our `TrinomialModel` algorithm!
     def __init__(self, S0, r, sigma, mat):
@@ -76,6 +79,7 @@ class TrinomialModel(object):  # Here we start defining our 'class' --> Trinomia
             expectation[i] = tmp
 
         return self.__discount * expectation
+
     # Seventh, Option pricing!
     def price(self, nb_steps, up=None):
         assert nb_steps > 0, "nb_steps shoud be > 0"
@@ -98,20 +102,26 @@ class TrinomialModel(object):  # Here we start defining our 'class' --> Trinomia
 
         return nxt_vec_prices[0]
 
+
 class TrinomialCall(TrinomialModel):
     def __init__(self, S0, r, sigma, mat, K):
         super(TrinomialCall, self).__init__(S0, r, sigma, mat)
         self.__K = K
+
     def payoff(self, s):
         return np.maximum(s - self.__K, 0.0)
+
 
 class TrinomialAmerican_C(TrinomialCall):
     def __init__(self, S0, r, sigma, mat, K):
         super(TrinomialAmerican_C, self).__init__(S0, r, sigma, mat, K)
 
     def compute_current_price(self, crt_vec_stock, nxt_vec_prices):
-        expectation = TrinomialCall.compute_current_price(self, crt_vec_stock, nxt_vec_prices)
+        expectation = TrinomialCall.compute_current_price(
+            self, crt_vec_stock, nxt_vec_prices
+        )
         return np.maximum(expectation, TrinomialCall.payoff(self, crt_vec_stock))
+
 
 class TrinomialPut(TrinomialModel):
     def __init__(self, S0, r, sigma, mat, K):
@@ -121,10 +131,13 @@ class TrinomialPut(TrinomialModel):
     def payoff(self, s):
         return np.maximum(self.__K - s, 0.0)
 
+
 class TrinomialAmerican_P(TrinomialPut):
     def __init__(self, S0, r, sigma, mat, K):
         super(TrinomialAmerican_P, self).__init__(S0, r, sigma, mat, K)
 
     def compute_current_price(self, crt_vec_stock, nxt_vec_prices):
-        expectation = TrinomialPut.compute_current_price(self, crt_vec_stock, nxt_vec_prices)
+        expectation = TrinomialPut.compute_current_price(
+            self, crt_vec_stock, nxt_vec_prices
+        )
         return np.maximum(expectation, TrinomialPut.payoff(self, crt_vec_stock))

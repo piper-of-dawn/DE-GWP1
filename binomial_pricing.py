@@ -53,16 +53,19 @@ class Option:
         )
 
     def __get_call_price_at_step(self, row, column, underlying_price, option_price):
-        if self.right.name == "CALL":
-            return max(
-                underlying_price[row, column] - self.strike_price,
-                option_price[row, column],
-            )
-        if self.right.name == "PUT":
-            return max(
-                self.strike_price - underlying_price[row, column],
-                option_price[row, column],
-            )
+        if self.style.name == "EUROPEAN":
+            return option_price[row, column]
+        if self.style.name == "AMERICAN":
+            if self.right.name == "CALL":
+                return max(
+                    underlying_price[row, column] - self.strike_price,
+                    option_price[row, column],
+                )
+            else:
+                return max(
+                    option_price[row, column],
+                    self.strike_price - underlying_price[row, column],
+                )
 
     # @lru_cache(maxsize=5)
     def price(self):
@@ -91,6 +94,11 @@ class Option:
 
         for row in range(self.number_of_steps - 1, -1, -1):
             for column in range(row + 1):
+                underlying_price[row, column] = (
+                    self.spot_price
+                    * (self.upside**column)
+                    * (self.downside ** (row - column))
+                )
                 option_price[row, column] = np.exp(
                     -self.risk_free_rate * self.time_step
                 ) * (
@@ -98,11 +106,7 @@ class Option:
                     + (1 - self.risk_neutral_probability)
                     * option_price[row + 1, column]
                 )
-                underlying_price[row, column] = (
-                    self.spot_price
-                    * (self.upside**column)
-                    * (self.downside ** (row - column))
-                )
+
                 option_price[row, column] = self.__get_call_price_at_step(
                     row, column, underlying_price, option_price
                 )
