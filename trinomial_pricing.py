@@ -1,6 +1,5 @@
 import numpy as np
 
-
 class TrinomialModel(object):  # Here we start defining our 'class' --> Trinomial Model!
     # First, a method to initialize our `TrinomialModel` algorithm!
     def __init__(self, S0, r, sigma, mat):
